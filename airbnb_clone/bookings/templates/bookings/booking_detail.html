@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Details - Airbnb Clone{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-invoice"></i> Booking #{{ booking.id }}
+                    </h4>
+                    <span class="badge 
+                        {% if booking.status == 'confirmed' %}bg-success
+                        {% elif booking.status == 'pending' %}bg-warning
+                        {% elif booking.status == 'cancelled' %}bg-secondary
+                        {% elif booking.status == 'completed' %}bg-primary
+                        {% endif %}">
+                        {{ booking.get_status_display|upper }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h5>Booking Information</h5>
+                    <hr>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="fas fa-calendar-check text-success"></i>
+                                <strong>Check-in:</strong><br>
+                                <span class="ms-4">{{ booking.check_in|date:"l, F d, Y" }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="fas fa-calendar-times text-danger"></i>
+                                <strong>Check-out:</strong><br>
+                                <span class="ms-4">{{ booking.check_out|date:"l, F d, Y" }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="fas fa-moon text-primary"></i>
+                                <strong>Number of Nights:</strong>
+                                <span class="ms-2">{{ booking.num_nights }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="fas fa-users text-info"></i>
+                                <strong>Number of Guests:</strong>
+                                <span class="ms-2">{{ booking.guests }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% if booking.special_requests %}
+                    <div class="mb-3">
+                        <p class="mb-2">
+                            <i class="fas fa-comment text-warning"></i>
+                            <strong>Special Requests:</strong>
+                        </p>
+                        <div class="alert alert-light ms-4">
+                            {{ booking.special_requests }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <h5>Property Details</h5>
+                    <div class="d-flex align-items-start mt-3">
+                        {% if booking.listing.images.all %}
+                            <img src="{{ booking.listing.images.first.image.url }}" 
+                                 alt="{{ booking.listing.title }}"
+                                 class="rounded me-3"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 120px; height: 120px;">
+                                <i class="fas fa-home fa-3x text-white"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div>
+                            <h5>
+                                <a href="{% url 'listing_detail' booking.listing.pk %}" 
+                                   class="text-decoration-none text-dark">
+                                    {{ booking.listing.title }}
+                                </a>
+                            </h5>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ booking.listing.street_address }}<br>
+                                <span class="ms-3">{{ booking.listing.city }}, {{ booking.listing.state }}</span><br>
+                                <span class="ms-3">{{ booking.listing.country }} {{ booking.listing.zip_code }}</span>
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-bed"></i> {{ booking.listing.bedrooms }} bedroom{{ booking.listing.bedrooms|pluralize }} · 
+                                <i class="fas fa-bath"></i> {{ booking.listing.bathrooms }} bathroom{{ booking.listing.bathrooms|pluralize }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>Host Information</h5>
+                    <div class="d-flex align-items-center mt-3">
+                        {% if booking.listing.host.profile_picture %}
+                            <img src="{{ booking.listing.host.profile_picture.url }}" 
+                                 alt="{{ booking.listing.host.username }}"
+                                 class="rounded-circle me-3"
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary me-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-user fa-2x text-white"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div>
+                            <h6 class="mb-0">
+                                <a href="{% url 'user_detail' booking.listing.host.pk %}" 
+                                   class="text-decoration-none">
+                                    {{ booking.listing.host.username }}
+                                </a>
+                            </h6>
+                            <p class="text-muted mb-0 small">
+                                <i class="fas fa-envelope"></i> {{ booking.listing.host.email }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        {% if user == booking.guest and booking.status in 'pending,confirmed' and booking.is_upcoming %}
+                            <a href="{% url 'cancel_booking' booking.pk %}" 
+                               class="btn btn-outline-danger"
+                               onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                <i class="fas fa-times-circle"></i> Cancel Booking
+                            </a>
+                        {% endif %}
+                        
+                        {% if user == booking.listing.host and booking.status == 'pending' %}
+                            <a href="{% url 'confirm_booking' booking.pk %}" 
+                               class="btn btn-success">
+                                <i class="fas fa-check-circle"></i> Confirm Booking
+                            </a>
+                        {% endif %}
+                        
+                        {% if booking.status == 'completed' and user == booking.guest %}
+                            {% if not booking.review %}
+                                <a href="{% url 'create_review' booking.pk %}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-star"></i> Leave a Review
+                                </a>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Review Submitted
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Price Breakdown -->
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice-dollar"></i> Price Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>${{ booking.listing.price_per_night }} x {{ booking.num_nights }} night{{ booking.num_nights|pluralize }}</span>
+                        <span>${{ booking.listing.price_per_night|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>${{ booking.total_price|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2 text-muted small">
+                        <span>Service Fee (10%)</span>
+                        <span>${{ booking.total_price|floatformat:2 }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <strong class="h5">Total</strong>
+                        <strong class="h5 text-danger">${{ booking.total_price|floatformat:2 }}</strong>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="small text-muted">
+                        <p class="mb-2">
+                            <i class="fas fa-calendar-plus"></i>
+                            <strong>Booked on:</strong><br>
+                            <span class="ms-3">{{ booking.created_at|date:"F d, Y - g:i A" }}</span>
+                        </p>
+                        
+                        {% if booking.updated_at != booking.created_at %}
+                        <p class="mb-0">
+                            <i class="fas fa-calendar-check"></i>
+                            <strong>Last Updated:</strong><br>
+                            <span class="ms-3">{{ booking.updated_at|date:"F d, Y - g:i A" }}</span>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Timeline -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history"></i> Booking Status
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item {% if booking.status != 'cancelled' %}active{% endif %}">
+                            <i class="fas fa-circle"></i>
+                            <span>Booking Created</span>
+                        </div>
+                        
+                        {% if booking.status == 'confirmed' or booking.status == 'completed' %}
+                        <div class="timeline-item active">
+                            <i class="fas fa-circle"></i>
+                            <span>Confirmed by Host</span>
+                        </div>
+                        {% elif booking.status == 'pending' %}
+                        <div class="timeline-item">
+                            <i class="fas fa-circle"></i>
+                            <span>Awaiting Confirmation</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if booking.status == 'completed' %}
+                        <div class="timeline-item active">
+                            <i class="fas fa-circle"></i>
+                            <span>Stay Completed</span>
+                        </div>
+                        {% elif booking.status == 'cancelled' %}
+                        <div class="timeline-item text-danger">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Booking Cancelled</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+    color: #999;
+}
+
+.timeline-item.active {
+    color: #333;
+}
+
+.timeline-item i {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    font-size: 12px;
+}
+
+.timeline-item.active i {
+    color: #28a745;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 15px;
+    width: 2px;
+    height: calc(100% - 10px);
+    background: #ddd;
+}
+
+.timeline-item.active:not(:last-child)::before {
+    background: #28a745;
+}
+</style>
+{% endblock %}

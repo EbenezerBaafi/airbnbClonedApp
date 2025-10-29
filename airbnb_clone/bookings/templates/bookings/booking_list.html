@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bookings - Airbnb Clone{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-calendar-alt"></i> My Bookings
+            </h2>
+            
+            <!-- Tabs for filtering bookings -->
+            <ul class="nav nav-tabs mb-4" id="bookingTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" 
+                            data-bs-target="#all" type="button" role="tab">
+                        All Bookings
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" 
+                            data-bs-target="#upcoming" type="button" role="tab">
+                        Upcoming
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" 
+                            data-bs-target="#completed" type="button" role="tab">
+                        Completed
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" 
+                            data-bs-target="#cancelled" type="button" role="tab">
+                        Cancelled
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="bookingTabsContent">
+                <!-- All Bookings -->
+                <div class="tab-pane fade show active" id="all" role="tabpanel">
+                    {% if bookings %}
+                        {% for booking in bookings %}
+                            {% include 'bookings/booking_card.html' with booking=booking %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <h4>No bookings yet</h4>
+                            <p>Start exploring and book your perfect stay!</p>
+                            <a href="{% url 'listing_list' %}" class="btn btn-danger mt-3">
+                                <i class="fas fa-search"></i> Browse Listings
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Upcoming Bookings -->
+                <div class="tab-pane fade" id="upcoming" role="tabpanel">
+                    {% for booking in bookings %}
+                        {% if booking.is_upcoming and booking.status != 'cancelled' %}
+                            {% include 'bookings/booking_card.html' with booking=booking %}
+                        {% endif %}
+                    {% empty %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No upcoming bookings.
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Completed Bookings -->
+                <div class="tab-pane fade" id="completed" role="tabpanel">
+                    {% for booking in bookings %}
+                        {% if booking.status == 'completed' %}
+                            {% include 'bookings/booking_card.html' with booking=booking %}
+                        {% endif %}
+                    {% empty %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No completed bookings.
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Cancelled Bookings -->
+                <div class="tab-pane fade" id="cancelled" role="tabpanel">
+                    {% for booking in bookings %}
+                        {% if booking.status == 'cancelled' %}
+                            {% include 'bookings/booking_card.html' with booking=booking %}
+                        {% endif %}
+                    {% empty %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No cancelled bookings.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

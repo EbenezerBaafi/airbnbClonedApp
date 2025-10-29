@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Book {{ listing.title }} - Airbnb Clone{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-calendar-check"></i> Book Your Stay</h4>
+                </div>
+                <div class="card-body">
+                    <h5>{{ listing.title }}</h5>
+                    <p class="text-muted">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        {{ listing.street_address }}, {{ listing.city }}, {{ listing.state }}, {{ listing.country }}
+                    </p>
+                    
+                    <hr>
+                    
+                    <form method="POST" id="bookingForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.check_in.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar"></i> Check-in Date
+                                </label>
+                                {{ form.check_in }}
+                                {% if form.check_in.errors %}
+                                    <div class="text-danger small">{{ form.check_in.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.check_out.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar"></i> Check-out Date
+                                </label>
+                                {{ form.check_out }}
+                                {% if form.check_out.errors %}
+                                    <div class="text-danger small">{{ form.check_out.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.guests.id_for_label }}" class="form-label">
+                                <i class="fas fa-users"></i> Number of Guests
+                            </label>
+                            {{ form.guests }}
+                            <div class="form-text">Maximum {{ listing.guests }} guests allowed</div>
+                            {% if form.guests.errors %}
+                                <div class="text-danger small">{{ form.guests.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.special_requests.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment"></i> Special Requests (Optional)
+                            </label>
+                            {{ form.special_requests }}
+                            {% if form.special_requests.errors %}
+                                <div class="text-danger small">{{ form.special_requests.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Booking
+                            </button>
+                            <a href="{% url 'listing_detail' listing.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Listing
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Listing Summary -->
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    {% if listing.images.all %}
+                        <img src="{{ listing.images.first.image.url }}" 
+                             class="card-img-top rounded mb-3" alt="{{ listing.title }}"
+                             style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary d-flex align-items-center justify-content-center rounded mb-3" 
+                             style="height: 200px;">
+                            <i class="fas fa-home fa-3x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h5 class="card-title">Booking Summary</h5>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Property Type:</span>
+                        <strong>{{ listing.get_property_type_display }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            <i class="fas fa-bed"></i> Bedrooms:
+                        </span>
+                        <strong>{{ listing.bedrooms }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            <i class="fas fa-bath"></i> Bathrooms:
+                        </span>
+                        <strong>{{ listing.bathrooms }}</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>
+                            <i class="fas fa-users"></i> Max Guests:
+                        </span>
+                        <strong>{{ listing.guests }}</strong>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="h5">Price per night:</span>
+                        <span class="h5 text-danger">${{ listing.price_per_night }}</span>
+                    </div>
+                    
+                    <div id="priceCalculation" style="display: none;">
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>${{ listing.price_per_night }} x <span id="numNights">0</span> nights</span>
+                            <span id="subtotal">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Service Fee (10%)</span>
+                            <span id="serviceFee">$0</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total:</strong>
+                            <strong class="text-danger h5" id="totalPrice">$0</strong>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Amenities:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if listing.wifi %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-wifi"></i> WiFi
+                            </span>
+                        {% endif %}
+                        {% if listing.kitchen %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-utensils"></i> Kitchen
+                            </span>
+                        {% endif %}
+                        {% if listing.parking %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-parking"></i> Parking
+                            </span>
+                        {% endif %}
+                        {% if listing.air_conditioning %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-snowflake"></i> AC
+                            </span>
+                        {% endif %}
+                        {% if listing.heating %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-fire"></i> Heating
+                            </span>
+                        {% endif %}
+                        {% if listing.tv %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-tv"></i> TV
+                            </span>
+                        {% endif %}
+                        {% if listing.pool %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-swimming-pool"></i> Pool
+                            </span>
+                        {% endif %}
+                        {% if listing.gym %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-dumbbell"></i> Gym
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <p class="small text-muted mb-0">
+                        <i class="fas fa-info-circle"></i> 
+                        You won't be charged yet. Final confirmation required.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkInInput = document.getElementById('{{ form.check_in.id_for_label }}');
+    const checkOutInput = document.getElementById('{{ form.check_out.id_for_label }}');
+    const pricePerNight = {{ listing.price_per_night }};
+    
+    function calculatePrice() {
+        if (checkInInput.value && checkOutInput.value) {
+            const checkIn = new Date(checkInInput.value);
+            const checkOut = new Date(checkOutInput.value);
+            
+            if (checkOut > checkIn) {
+                const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                const subtotal = nights * pricePerNight;
+                const serviceFee = subtotal * 0.1;
+                const total = subtotal + serviceFee;
+                
+                document.getElementById('numNights').textContent = nights;
+                document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+                document.getElementById('serviceFee').textContent = '$' + serviceFee.toFixed(2);
+                document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+                document.getElementById('priceCalculation').style.display = 'block';
+            } else {
+                document.getElementById('priceCalculation').style.display = 'none';
+            }
+        }
+    }
+    
+    checkInInput.addEventListener('change', calculatePrice);
+    checkOutInput.addEventListener('change', calculatePrice);
+    
+    // Set minimum dates
+    const today = new Date().toISOString().split('T')[0];
+    checkInInput.setAttribute('min', today);
+    
+    checkInInput.addEventListener('change', function() {
+        checkOutInput.setAttribute('min', this.value);
+    });
+});
+</script>
+{% endblock %}
