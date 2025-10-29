@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }} - Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    {% if profile_user.profile_picture %}
+                        <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.username }}" 
+                             class="rounded-circle img-fluid mb-3" style="width: 200px; height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mb-3 mx-auto" 
+                             style="width: 200px; height: 200px;">
+                            <i class="fas fa-user fa-5x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h3>{{ profile_user.username }}</h3>
+                    <p class="text-muted">
+                        <i class="fas fa-user-tag"></i> 
+                        {{ profile_user.get_user_type_display }}
+                    </p>
+                    
+                    {% if profile_user.is_verified %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </span>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <p class="mb-2">
+                            <i class="fas fa-calendar"></i> 
+                            <strong>Joined:</strong> {{ profile_user.created_at|date:"M Y" }}
+                        </p>
+                    </div>
+                    
+                    {% if profile_user.bio %}
+                    <hr>
+                    <div class="text-start">
+                        <h6><i class="fas fa-info-circle"></i> About</h6>
+                        <p class="small">{{ profile_user.bio }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            {% if profile_user.user_type == 'host' or profile_user.user_type == 'both' %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-home"></i> {{ profile_user.username }}'s Listings</h4>
+                </div>
+                <div class="card-body">
+                    {% if profile_user.listings.all %}
+                        <div class="row">
+                            {% for listing in profile_user.listings.all %}
+                                {% if listing.is_active %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        {% if listing.images.all %}
+                                            <img src="{{ listing.images.first.image.url }}" 
+                                                 class="card-img-top" alt="{{ listing.title }}"
+                                                 style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-secondary d-flex align-items-center justify-content-center" 
+                                                 style="height: 200px;">
+                                                <i class="fas fa-home fa-3x text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ listing.title }}</h5>
+                                            <p class="card-text">{{ listing.city }}, {{ listing.country }}</p>
+                                            <p class="fw-bold">${{ listing.price_per_night }} / night</p>
+                                            <a href="{% url 'listing_detail' listing.pk %}" class="btn btn-danger btn-sm">
+                                                View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No listings available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> This user is a guest and doesn't have any listings.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

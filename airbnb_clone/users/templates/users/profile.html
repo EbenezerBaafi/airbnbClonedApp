@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" 
+                             class="rounded-circle img-fluid mb-3" style="width: 200px; height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mb-3 mx-auto" 
+                             style="width: 200px; height: 200px;">
+                            <i class="fas fa-user fa-5x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h3>{{ user.username }}</h3>
+                    <p class="text-muted">
+                        <i class="fas fa-user-tag"></i> 
+                        {{ user.get_user_type_display }}
+                    </p>
+                    
+                    {% if user.is_verified %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </span>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <p class="mb-2">
+                            <i class="fas fa-envelope"></i> 
+                            <strong>Email:</strong> {{ user.email }}
+                        </p>
+                        
+                        {% if user.phone_number %}
+                        <p class="mb-2">
+                            <i class="fas fa-phone"></i> 
+                            <strong>Phone:</strong> {{ user.phone_number }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if user.date_of_birth %}
+                        <p class="mb-2">
+                            <i class="fas fa-birthday-cake"></i> 
+                            <strong>Birthday:</strong> {{ user.date_of_birth|date:"M d, Y" }}
+                        </p>
+                        {% endif %}
+                        
+                        <p class="mb-2">
+                            <i class="fas fa-calendar"></i> 
+                            <strong>Joined:</strong> {{ user.created_at|date:"M Y" }}
+                        </p>
+                    </div>
+                    
+                    {% if user.bio %}
+                    <hr>
+                    <div class="text-start">
+                        <h6><i class="fas fa-info-circle"></i> About</h6>
+                        <p class="small">{{ user.bio }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Update Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger small">{{ form.phone_number.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                    <div class="text-danger small">{{ form.date_of_birth.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
+                                <div class="text-danger small">{{ form.bio.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                            {{ form.profile_picture }}
+                            {% if form.profile_picture.errors %}
+                                <div class="text-danger small">{{ form.profile_picture.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if user.user_type == 'host' or user.user_type == 'both' %}
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-home"></i> My Listings</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'listing_create' %}" class="btn btn-danger mb-3">
+                        <i class="fas fa-plus"></i> Create New Listing
+                    </a>
+                    <a href="{% url 'host_bookings' %}" class="btn btn-outline-primary mb-3">
+                        <i class="fas fa-calendar-check"></i> View Bookings
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

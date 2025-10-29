@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Listings - Airbnb Clone{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4 mb-4">Explore Amazing Places</h1>
+    
+    <!-- Search Form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="location" class="form-control" 
+                               placeholder="Where to?" value="{{ request.GET.location }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="guests" class="form-control" 
+                               placeholder="Guests" min="1" value="{{ request.GET.guests }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="min_price" class="form-control" 
+                               placeholder="Min Price" min="0" value="{{ request.GET.min_price }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="max_price" class="form-control" 
+                               placeholder="Max Price" min="0" value="{{ request.GET.max_price }}">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Listings Grid -->
+    {% if listings %}
+        <div class="row">
+            {% for listing in listings %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100 shadow-sm listing-card">
+                    <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
+                        {% if listing.images.all %}
+                            <img src="{{ listing.images.first.image.url }}" 
+                                 class="card-img-top" alt="{{ listing.title }}"
+                                 style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-home fa-3x text-white"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">{{ listing.title }}</h5>
+                            <p class="card-text text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt"></i> {{ listing.city }}, {{ listing.country }}
+                            </p>
+                            <p class="card-text small mb-2">
+                                <i class="fas fa-bed"></i> {{ listing.bedrooms }} bed{{ listing.bedrooms|pluralize }} · 
+                                <i class="fas fa-bath"></i> {{ listing.bathrooms }} bath{{ listing.bathrooms|pluralize }} · 
+                                <i class="fas fa-users"></i> {{ listing.guests }} guest{{ listing.guests|pluralize }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-danger">${{ listing.price_per_night }}</span>
+                                <small class="text-muted">/ night</small>
+                            </div>
+                            {% if listing.average_rating > 0 %}
+                            <p class="card-text small mt-2">
+                                <i class="fas fa-star text-warning"></i> {{ listing.average_rating|floatformat:1 }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle fa-3x mb-3"></i>
+            <h4>No listings found</h4>
+            <p>Try adjusting your search criteria or explore all available properties.</p>
+            {% if user.is_authenticated and user.user_type != 'guest' %}
+                <a href="{% url 'listing_create' %}" class="btn btn-danger mt-3">
+                    <i class="fas fa-plus"></i> Create Your First Listing
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.listing-card {
+    transition: transform 0.2s;
+}
+
+.listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+}
+</style>
+{% endblock %}
