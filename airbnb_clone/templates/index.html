@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Airbnb Clone{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Find Your Perfect Stay</h1>
+                <p class="lead mb-4">Discover unique homes and experiences around the world</p>
+                <a href="{% url 'listing_list' %}" class="btn btn-danger btn-lg">Start Exploring</a>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static 'images/hero-image.jpg' %}" alt="Hero" class="img-fluid rounded" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Search Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" action="{% url 'listing_list' %}">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <input type="text" name="location" class="form-control" placeholder="Where to?">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="check_in" class="form-control">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="check_out" class="form-control">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" name="guests" class="form-control" placeholder="Guests" min="1">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row text-center mb-5">
+        <div class="col-12 mb-4">
+            <h2 class="fw-bold">Why Choose Us?</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-home fa-3x text-danger mb-3"></i>
+                    <h4>Unique Homes</h4>
+                    <p>Stay in unique properties from around the world</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-shield-alt fa-3x text-danger mb-3"></i>
+                    <h4>Secure Booking</h4>
+                    <p>Book with confidence with our secure payment system</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-headset fa-3x text-danger mb-3"></i>
+                    <h4>24/7 Support</h4>
+                    <p>Get help anytime with our dedicated support team</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="row bg-danger text-white rounded p-5 text-center">
+        <div class="col-12">
+            <h2 class="mb-3">Ready to Start Hosting?</h2>
+            <p class="lead mb-4">Share your space and earn extra income</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'listing_create' %}" class="btn btn-light btn-lg">List Your Property</a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-light btn-lg">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
