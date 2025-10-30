@@ -1,101 +1,462 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Home - Airbnb Clone{% endblock %}
+{% block title %}Home - Find Your Perfect Stay{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                    url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1600&h=900&fit=crop') center/cover;
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        color: white;
+        position: relative;
+    }
+    
+    .category-card {
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        height: 300px;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .category-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .category-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        padding: 30px 20px;
+        color: white;
+    }
+    
+    .search-box {
+        background: white;
+        border-radius: 50px;
+        padding: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .destination-card {
+        border-radius: 15px;
+        overflow: hidden;
+        height: 250px;
+        position: relative;
+    }
+    
+    .destination-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .destination-card:hover img {
+        transform: scale(1.1);
+    }
+    
+    .destination-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        padding: 20px;
+        color: white;
+    }
+    
+    .testimonial-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        height: 100%;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, #FF385C 0%, #BD1E59 100%);
+        border-radius: 20px;
+        padding: 60px 40px;
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="hero-section bg-light py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Find Your Perfect Stay</h1>
-                <p class="lead mb-4">Discover unique homes and experiences around the world</p>
-                <a href="{% url 'listing_list' %}" class="btn btn-danger btn-lg">Start Exploring</a>
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold mb-4" data-aos="fade-up">Not sure where to go? Perfect.</h1>
+        <p class="lead mb-5" data-aos="fade-up" data-aos-delay="100">
+            Discover unique spaces and experiences around the world
+        </p>
+        
+        <!-- Search Box -->
+        <div class="search-box mx-auto" style="max-width: 900px;" data-aos="fade-up" data-aos-delay="200">
+            <form method="GET" action="{% url 'listing_list' %}">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <input type="text" name="location" class="form-control border-0" 
+                               placeholder="Where are you going?" style="background: transparent;">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="check_in" class="form-control border-0" 
+                               style="background: transparent;">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="check_out" class="form-control border-0" 
+                               style="background: transparent;">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-danger w-100 btn-lg rounded-pill">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Property Categories -->
+<div class="container my-5 py-5">
+    <h2 class="text-center fw-bold mb-5">Explore by Property Type</h2>
+    <div class="row g-4">
+        <div class="col-md-4" data-aos="fade-up">
+            <div class="category-card">
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop" 
+                     alt="Entire Homes">
+                <div class="category-overlay">
+                    <h3 class="fw-bold">Entire Homes</h3>
+                    <p class="mb-0">Comfortable private places with room for everyone</p>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <img src="{% static 'images/hero-image.jpg' %}" alt="Hero" class="img-fluid rounded" onerror="this.style.display='none'">
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="category-card">
+                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop" 
+                     alt="Luxury Villas">
+                <div class="category-overlay">
+                    <h3 class="fw-bold">Luxury Villas</h3>
+                    <p class="mb-0">Experience luxury and exclusivity</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="category-card">
+                <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=600&fit=crop" 
+                     alt="Beachfront">
+                <div class="category-overlay">
+                    <h3 class="fw-bold">Beachfront</h3>
+                    <p class="mb-0">Wake up to the sound of waves</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container my-5">
-    <!-- Search Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <form method="GET" action="{% url 'listing_list' %}">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <input type="text" name="location" class="form-control" placeholder="Where to?">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="date" name="check_in" class="form-control">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="date" name="check_out" class="form-control">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number" name="guests" class="form-control" placeholder="Guests" min="1">
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-danger w-100">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
-                            </div>
+<!-- Stunning Pools Section -->
+<div class="bg-light py-5">
+    <div class="container my-5">
+        <h2 class="text-center fw-bold mb-5">Properties with Amazing Pools</h2>
+        <div class="row g-4">
+            <div class="col-md-6" data-aos="fade-right">
+                <div class="destination-card">
+                    <img src="https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=800&h=600&fit=crop" 
+                         alt="Infinity Pool">
+                    <div class="destination-overlay">
+                        <h4 class="fw-bold">Infinity Pools</h4>
+                        <p class="mb-0">Stunning views, endless relaxation</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6" data-aos="fade-left">
+                <div class="destination-card">
+                    <img src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=800&h=600&fit=crop" 
+                         alt="Private Pool">
+                    <div class="destination-overlay">
+                        <h4 class="fw-bold">Private Pools</h4>
+                        <p class="mb-0">Your own oasis of tranquility</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Luxury Living Rooms -->
+<div class="container my-5 py-5">
+    <h2 class="text-center fw-bold mb-5">Designed for Comfort</h2>
+    <div class="row g-4 align-items-center">
+        <div class="col-md-6" data-aos="fade-up">
+            <img src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800&h=600&fit=crop" 
+                 alt="Modern Living Room" class="img-fluid rounded shadow-lg">
+        </div>
+        <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+            <h3 class="fw-bold mb-4">Spaces That Feel Like Home</h3>
+            <p class="lead text-muted mb-4">
+                Experience the perfect blend of style and comfort. Our properties feature 
+                thoughtfully designed living spaces where you can relax, unwind, and make 
+                lasting memories.
+            </p>
+            <ul class="list-unstyled">
+                <li class="mb-3">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Modern, stylish interiors
+                </li>
+                <li class="mb-3">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Premium furniture and amenities
+                </li>
+                <li class="mb-3">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Natural light and spacious layouts
+                </li>
+            </ul>
+            <a href="{% url 'listing_list' %}" class="btn btn-danger btn-lg">
+                Explore Properties <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="row g-4 mt-5 align-items-center">
+        <div class="col-md-6 order-md-2" data-aos="fade-up">
+            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop" 
+                 alt="Cozy Interior" class="img-fluid rounded shadow-lg">
+        </div>
+        <div class="col-md-6 order-md-1" data-aos="fade-up" data-aos-delay="100">
+            <h3 class="fw-bold mb-4">Cozy & Inviting</h3>
+            <p class="lead text-muted mb-4">
+                From intimate studios to spacious family homes, each property is carefully 
+                curated to ensure your comfort. Enjoy plush seating, ambient lighting, and 
+                all the conveniences of modern living.
+            </p>
+            <div class="row">
+                <div class="col-6">
+                    <h4 class="text-danger fw-bold">500+</h4>
+                    <p class="text-muted">Premium Properties</p>
+                </div>
+                <div class="col-6">
+                    <h4 class="text-danger fw-bold">50k+</h4>
+                    <p class="text-muted">Happy Guests</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Why Choose Us -->
+<div class="bg-light py-5">
+    <div class="container my-5">
+        <h2 class="text-center fw-bold mb-5">Why Book With Us</h2>
+        <div class="row g-4">
+            <div class="col-md-4 text-center" data-aos="zoom-in">
+                <div class="feature-icon">
+                    <i class="fas fa-home fa-3x text-danger"></i>
+                </div>
+                <h4 class="fw-bold">Verified Properties</h4>
+                <p class="text-muted">Every listing is verified for quality and authenticity</p>
+            </div>
+            <div class="col-md-4 text-center" data-aos="zoom-in" data-aos-delay="100">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt fa-3x text-danger"></i>
+                </div>
+                <h4 class="fw-bold">Secure Payments</h4>
+                <p class="text-muted">Your transactions are protected with bank-level security</p>
+            </div>
+            <div class="col-md-4 text-center" data-aos="zoom-in" data-aos-delay="200">
+                <div class="feature-icon">
+                    <i class="fas fa-headset fa-3x text-danger"></i>
+                </div>
+                <h4 class="fw-bold">24/7 Support</h4>
+                <p class="text-muted">Our team is always here to help you</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Destinations -->
+<div class="container my-5 py-5">
+    <h2 class="text-center fw-bold mb-5">Popular Destinations</h2>
+    <div class="row g-4">
+        <div class="col-md-3 col-sm-6" data-aos="flip-left">
+            <div class="destination-card">
+                <img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=400&h=500&fit=crop" 
+                     alt="Beach House">
+                <div class="destination-overlay">
+                    <h5 class="fw-bold">Malibu</h5>
+                    <p class="mb-0 small">Beach Houses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6" data-aos="flip-left" data-aos-delay="100">
+            <div class="destination-card">
+                <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=500&fit=crop" 
+                     alt="City View">
+                <div class="destination-overlay">
+                    <h5 class="fw-bold">New York</h5>
+                    <p class="mb-0 small">City Apartments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6" data-aos="flip-left" data-aos-delay="200">
+            <div class="destination-card">
+                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop" 
+                     alt="Mountain Cabin">
+                <div class="destination-overlay">
+                    <h5 class="fw-bold">Aspen</h5>
+                    <p class="mb-0 small">Mountain Cabins</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6" data-aos="flip-left" data-aos-delay="300">
+            <div class="destination-card">
+                <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=500&fit=crop" 
+                     alt="Lake House">
+                <div class="destination-overlay">
+                    <h5 class="fw-bold">Lake Tahoe</h5>
+                    <p class="mb-0 small">Lake Houses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials -->
+<div class="bg-light py-5">
+    <div class="container my-5">
+        <h2 class="text-center fw-bold mb-5">What Our Guests Say</h2>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="testimonial-card">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="mb-4">"Amazing experience! The property was exactly as described, 
+                    and the host was incredibly helpful. Will definitely book again!"</p>
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center me-3" 
+                             style="width: 50px; height: 50px;">
+                            <i class="fas fa-user text-white"></i>
                         </div>
-                    </form>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Sarah Johnson</h6>
+                            <small class="text-muted">Los Angeles, CA</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="testimonial-card">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="mb-4">"Perfect vacation rental! Beautiful interiors, great location, 
+                    and spotlessly clean. Exceeded all our expectations!"</p>
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center me-3" 
+                             style="width: 50px; height: 50px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Michael Chen</h6>
+                            <small class="text-muted">San Francisco, CA</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="testimonial-card">
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="mb-4">"Incredible stay! The pool was amazing and the living room was 
+                    so cozy. Felt like a home away from home."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center me-3" 
+                             style="width: 50px; height: 50px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Emily Davis</h6>
+                            <small class="text-muted">Miami, FL</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Features Section -->
-    <div class="row text-center mb-5">
-        <div class="col-12 mb-4">
-            <h2 class="fw-bold">Why Choose Us?</h2>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-home fa-3x text-danger mb-3"></i>
-                    <h4>Unique Homes</h4>
-                    <p>Stay in unique properties from around the world</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-shield-alt fa-3x text-danger mb-3"></i>
-                    <h4>Secure Booking</h4>
-                    <p>Book with confidence with our secure payment system</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-headset fa-3x text-danger mb-3"></i>
-                    <h4>24/7 Support</h4>
-                    <p>Get help anytime with our dedicated support team</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- CTA Section -->
-    <div class="row bg-danger text-white rounded p-5 text-center">
-        <div class="col-12">
-            <h2 class="mb-3">Ready to Start Hosting?</h2>
-            <p class="lead mb-4">Share your space and earn extra income</p>
+<!-- CTA Section -->
+<div class="container my-5">
+    <div class="cta-section text-center" data-aos="zoom-in">
+        <h2 class="display-5 fw-bold mb-3">Ready to Earn as a Host?</h2>
+        <p class="lead mb-4">Join thousands of hosts earning extra income by sharing their beautiful spaces</p>
+        <div class="d-flex gap-3 justify-content-center">
             {% if user.is_authenticated %}
-                <a href="{% url 'listing_create' %}" class="btn btn-light btn-lg">List Your Property</a>
+                <a href="{% url 'listing_create' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i>List Your Property
+                </a>
             {% else %}
-                <a href="{% url 'register' %}" class="btn btn-light btn-lg">Get Started</a>
+                <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </a>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- AOS Animation Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+<script>
+    AOS.init({
+        duration: 1000,
+        once: true
+    });
+</script>
 {% endblock %}
