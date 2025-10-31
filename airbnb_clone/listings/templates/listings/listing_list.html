@@ -2,30 +2,162 @@
 
 {% block title %}Explore Listings - Airbnb Clone{% endblock %}
 
-{% block content %}
-<div class="container">
-    <h1 class="mt-4 mb-4">Explore Amazing Places</h1>
+{% block extra_css %}
+<style>
+    .filter-section {
+        background: white;
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 15px 0;
+    }
     
-    <!-- Search Form -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET">
-                <div class="row g-3">
+    .category-chip {
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+    
+    .category-chip:hover {
+        border-color: #222;
+        background: #f7f7f7;
+    }
+    
+    .category-chip.active {
+        background: #222;
+        color: white;
+        border-color: #222;
+    }
+    
+    .listing-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+    
+    .listing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .listing-image {
+        height: 280px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+        position: relative;
+    }
+    
+    .heart-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+    }
+    
+    .heart-icon:hover {
+        transform: scale(1.1);
+    }
+    
+    .price-tag {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .rating-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+    
+    .search-bar {
+        border-radius: 50px;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .search-bar:focus-within {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Categories (Sticky) -->
+<div class="filter-section">
+    <div class="container">
+        <div class="d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none;">
+            <button class="category-chip active">
+                <i class="fas fa-home"></i> All
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-swimming-pool"></i> Amazing pools
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-umbrella-beach"></i> Beachfront
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-mountain"></i> Cabins
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-city"></i> City
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-tree"></i> Countryside
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-gem"></i> Luxury
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-home-lg-alt"></i> Villas
+            </button>
+            <button class="category-chip">
+                <i class="fas fa-building"></i> Apartments
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <!-- Search and Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <form method="GET" class="search-bar bg-white p-3">
+                <div class="row g-3 align-items-end">
                     <div class="col-md-3">
-                        <input type="text" name="location" class="form-control" 
-                               placeholder="Where to?" value="{{ request.GET.location }}">
+                        <label class="form-label small text-muted mb-1">Where</label>
+                        <input type="text" name="location" class="form-control border-0" 
+                               placeholder="Search destinations" value="{{ request.GET.location }}">
                     </div>
                     <div class="col-md-2">
-                        <input type="number" name="guests" class="form-control" 
-                               placeholder="Guests" min="1" value="{{ request.GET.guests }}">
+                        <label class="form-label small text-muted mb-1">Check in</label>
+                        <input type="date" name="check_in" class="form-control border-0" 
+                               value="{{ request.GET.check_in }}">
                     </div>
                     <div class="col-md-2">
-                        <input type="number" name="min_price" class="form-control" 
-                               placeholder="Min Price" min="0" value="{{ request.GET.min_price }}">
+                        <label class="form-label small text-muted mb-1">Check out</label>
+                        <input type="date" name="check_out" class="form-control border-0" 
+                               value="{{ request.GET.check_out }}">
                     </div>
                     <div class="col-md-2">
-                        <input type="number" name="max_price" class="form-control" 
-                               placeholder="Max Price" min="0" value="{{ request.GET.max_price }}">
+                        <label class="form-label small text-muted mb-1">Guests</label>
+                        <input type="number" name="guests" class="form-control border-0" 
+                               placeholder="Add guests" min="1" value="{{ request.GET.guests }}">
                     </div>
                     <div class="col-md-3">
                         <button type="submit" class="btn btn-danger w-100">
@@ -37,45 +169,71 @@
         </div>
     </div>
     
+    <!-- Results Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0">
+            {% if listings %}
+                {{ listings|length }}+ stay{{ listings|length|pluralize }} 
+                {% if request.GET.location %}in {{ request.GET.location }}{% endif %}
+            {% else %}
+                No properties found
+            {% endif %}
+        </h5>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="fas fa-sliders-h"></i> Filters
+            </button>
+        </div>
+    </div>
+    
     <!-- Listings Grid -->
     {% if listings %}
-        <div class="row">
+        <div class="row g-4">
             {% for listing in listings %}
-            <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card h-100 shadow-sm listing-card">
-                    <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
-                        {% if listing.images.all %}
-                            <img src="{{ listing.images.first.image.url }}" 
-                                 class="card-img-top" alt="{{ listing.title }}"
-                                 style="height: 200px; object-fit: cover;">
-                        {% else %}
-                            <div class="bg-secondary d-flex align-items-center justify-content-center" 
-                                 style="height: 200px;">
-                                <i class="fas fa-home fa-3x text-white"></i>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="card-body">
-                            <h5 class="card-title text-truncate">{{ listing.title }}</h5>
-                            <p class="card-text text-muted small mb-2">
-                                <i class="fas fa-map-marker-alt"></i> {{ listing.city }}, {{ listing.country }}
-                            </p>
-                            <p class="card-text small mb-2">
-                                <i class="fas fa-bed"></i> {{ listing.bedrooms }} bed{{ listing.bedrooms|pluralize }} · 
-                                <i class="fas fa-bath"></i> {{ listing.bathrooms }} bath{{ listing.bathrooms|pluralize }} · 
-                                <i class="fas fa-users"></i> {{ listing.guests }} guest{{ listing.guests|pluralize }}
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold text-danger">${{ listing.price_per_night }}</span>
-                                <small class="text-muted">/ night</small>
-                            </div>
-                            {% if listing.average_rating > 0 %}
-                            <p class="card-text small mt-2">
-                                <i class="fas fa-star text-warning"></i> {{ listing.average_rating|floatformat:1 }}
-                            </p>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="listing-card">
+                    <div class="position-relative">
+                        <a href="{% url 'listing_detail' listing.pk %}">
+                            {% if listing.images.all %}
+                                <img src="{{ listing.images.first.image.url }}" 
+                                     class="listing-image" alt="{{ listing.title }}">
+                            {% else %}
+                                <div class="listing-image bg-secondary d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-home fa-4x text-white"></i>
+                                </div>
                             {% endif %}
+                        </a>
+                        <div class="heart-icon">
+                            <i class="far fa-heart text-danger"></i>
                         </div>
-                    </a>
+                    </div>
+                    
+                    <div class="card-body px-0 pt-3">
+                        <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="fw-bold mb-0">{{ listing.city }}, {{ listing.state }}</h6>
+                                {% if listing.average_rating > 0 %}
+                                <span class="rating-badge">
+                                    <i class="fas fa-star text-warning" style="font-size: 0.85rem;"></i>
+                                    <span class="fw-bold">{{ listing.average_rating|floatformat:1 }}</span>
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="text-muted small mb-1">{{ listing.get_property_type_display }}</p>
+                            
+                            <p class="text-muted small mb-2">
+                                {{ listing.guests }} guest{{ listing.guests|pluralize }} · 
+                                {{ listing.bedrooms }} bed{{ listing.bedrooms|pluralize }} · 
+                                {{ listing.bathrooms }} bath
+                            </p>
+                            
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="price-tag">${{ listing.price_per_night }}</span>
+                                <span class="small text-muted">night</span>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endfor %}
@@ -83,56 +241,164 @@
         
         <!-- Pagination -->
         {% if is_paginated %}
-        <nav aria-label="Page navigation">
+        <nav aria-label="Page navigation" class="mt-5">
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1">First</a>
+                        <a class="page-link" href="?page=1{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
                     </li>
                 {% endif %}
                 
                 <li class="page-item active">
                     <span class="page-link">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
                     </span>
                 </li>
                 
                 {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
                     </li>
                 {% endif %}
             </ul>
         </nav>
         {% endif %}
+        
     {% else %}
-        <div class="alert alert-info text-center">
-            <i class="fas fa-info-circle fa-3x mb-3"></i>
-            <h4>No listings found</h4>
-            <p>Try adjusting your search criteria or explore all available properties.</p>
-            {% if user.is_authenticated and user.user_type != 'guest' %}
-                <a href="{% url 'listing_create' %}" class="btn btn-danger mt-3">
-                    <i class="fas fa-plus"></i> Create Your First Listing
-                </a>
-            {% endif %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-5x text-muted mb-4"></i>
+            <h3 class="mb-3">No exact matches</h3>
+            <p class="text-muted mb-4">Try changing or removing some of your filters</p>
+            <a href="{% url 'listing_list' %}" class="btn btn-outline-danger">
+                Clear all filters
+            </a>
         </div>
     {% endif %}
 </div>
 
-<style>
-.listing-card {
-    transition: transform 0.2s;
-}
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filters</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="GET">
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Price range</h6>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small">Minimum</label>
+                                <input type="number" name="min_price" class="form-control" 
+                                       placeholder="$0" min="0" value="{{ request.GET.min_price }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Maximum</label>
+                                <input type="number" name="max_price" class="form-control" 
+                                       placeholder="$1000+" min="0" value="{{ request.GET.max_price }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Rooms and beds</h6>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small">Bedrooms</label>
+                                <select name="bedrooms" class="form-select">
+                                    <option value="">Any</option>
+                                    <option value="1">1+</option>
+                                    <option value="2">2+</option>
+                                    <option value="3">3+</option>
+                                    <option value="4">4+</option>
+                                    <option value="5">5+</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Bathrooms</label>
+                                <select name="bathrooms" class="form-select">
+                                    <option value="">Any</option>
+                                    <option value="1">1+</option>
+                                    <option value="2">2+</option>
+                                    <option value="3">3+</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3">Property type</h6>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <input type="radio" name="property_type" value="" id="type_all" class="btn-check">
+                                <label class="btn btn-outline-secondary w-100" for="type_all">All</label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" name="property_type" value="house" id="type_house" class="btn-check">
+                                <label class="btn btn-outline-secondary w-100" for="type_house">House</label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" name="property_type" value="apartment" id="type_apt" class="btn-check">
+                                <label class="btn btn-outline-secondary w-100" for="type_apt">Apartment</label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" name="property_type" value="villa" id="type_villa" class="btn-check">
+                                <label class="btn btn-outline-secondary w-100" for="type_villa">Villa</label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" name="property_type" value="cabin" id="type_cabin" class="btn-check">
+                                <label class="btn btn-outline-secondary w-100" for="type_cabin">Cabin</label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" name="property_type" value="cottage" id="type_cottage" class="btn-check">
+                                <label class="btn btn-outline-secondary w-100" for="type_cottage">Cottage</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Apply filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-.listing-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-}
-</style>
+<div class="mb-5"></div>
+
+<script>
+// Heart icon toggle
+document.querySelectorAll('.heart-icon').forEach(icon => {
+    icon.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const heart = this.querySelector('i');
+        heart.classList.toggle('far');
+        heart.classList.toggle('fas');
+    });
+});
+</script>
 {% endblock %}
