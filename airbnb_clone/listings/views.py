@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q, Avg
 from .models import Listing, ListingImage
 from .forms import ListingForm, ListingImageForm, ListingSearchForm
 
@@ -13,22 +13,26 @@ class ListingListView(ListView):
     model = Listing
     template_name = 'listings/listing_list.html'
     context_object_name = 'listings'
-    paginate_by = 12
+    paginate_by = 20
     
     def get_queryset(self):
-        queryset = Listing.objects.filter(is_active=True)
+        queryset = Listing.objects.filter(is_active=True).prefetch_related('images', 'reviews')
         
         # Search functionality
         location = self.request.GET.get('location')
         guests = self.request.GET.get('guests')
         min_price = self.request.GET.get('min_price')
         max_price = self.request.GET.get('max_price')
+        bedrooms = self.request.GET.get('bedrooms')
+        bathrooms = self.request.GET.get('bathrooms')
+        property_type = self.request.GET.get('property_type')
         
         if location:
             queryset = queryset.filter(
                 Q(city__icontains=location) | 
                 Q(state__icontains=location) | 
-                Q(country__icontains=location)
+                Q(country__icontains=location) |
+                Q(title__icontains=location)
             )
         
         if guests:
@@ -39,8 +43,17 @@ class ListingListView(ListView):
         
         if max_price:
             queryset = queryset.filter(price_per_night__lte=max_price)
+            
+        if bedrooms:
+            queryset = queryset.filter(bedrooms__gte=bedrooms)
+            
+        if bathrooms:
+            queryset = queryset.filter(bathrooms__gte=bathrooms)
+            
+        if property_type:
+            queryset = queryset.filter(property_type=property_type)
         
-        return queryset
+        return queryset.order_by('-created_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -56,7 +69,7 @@ class ListingDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['images'] = self.object.images.all()
-        context['reviews'] = self.object.reviews.all()
+        context['reviews'] = self.object.reviews.select_related('reviewer').all()
         return context
 
 class ListingCreateView(LoginRequiredMixin, CreateView):
