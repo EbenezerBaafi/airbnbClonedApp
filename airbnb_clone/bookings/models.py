@@ -30,36 +30,52 @@ class Booking(models.Model):
     
     def clean(self):
         """Validate booking dates"""
-        if self.check_in >= self.check_out:
-            raise ValidationError('Check-out date must be after check-in date.')
+        errors = {}
         
-        if self.check_in < timezone.now().date():
-            raise ValidationError('Check-in date cannot be in the past.')
+        if self.check_in and self.check_out:
+            if self.check_in >= self.check_out:
+                errors['check_out'] = 'Check-out date must be after check-in date.'
+            
+            if self.check_in < timezone.now().date():
+                errors['check_in'] = 'Check-in date cannot be in the past.'
         
-        # Check for overlapping bookings
-        overlapping = Booking.objects.filter(
-            listing=self.listing,
-            status__in=['pending', 'confirmed']
-        ).exclude(pk=self.pk).filter(
-            check_in__lt=self.check_out,
-            check_out__gt=self.check_in
-        )
+        # Check if listing exists before validating overlaps
+        if hasattr(self, 'listing') and self.listing:
+            # Check for overlapping bookings
+            overlapping = Booking.objects.filter(
+                listing=self.listing,
+                status__in=['pending', 'confirmed']
+            ).exclude(pk=self.pk)
+            
+            if self.check_in and self.check_out:
+                overlapping = overlapping.filter(
+                    check_in__lt=self.check_out,
+                    check_out__gt=self.check_in
+                )
+                
+                if overlapping.exists():
+                    errors['__all__'] = 'This property is not available for the selected dates.'
         
-        if overlapping.exists():
-            raise ValidationError('This property is not available for the selected dates.')
+        if errors:
+            raise ValidationError(errors)
     
     def save(self, *args, **kwargs):
-        # Calculate total price
-        if self.check_in and self.check_out:
-            num_nights = (self.check_out - self.check_in).days
-            self.total_price = num_nights * self.listing.price_per_night
+        # Calculate total price if not set
+        if self.check_in and self.check_out and hasattr(self, 'listing') and self.listing:
+            if not self.total_price or self.total_price == 0:
+                num_nights = (self.check_out - self.check_in).days
+                self.total_price = num_nights * self.listing.price_per_night
         
+        # Run validation
         self.full_clean()
+        
         super().save(*args, **kwargs)
     
     @property
     def num_nights(self):
-        return (self.check_out - self.check_in).days
+        if self.check_in and self.check_out:
+            return (self.check_out - self.check_in).days
+        return 0
     
     @property
     def is_upcoming(self):
